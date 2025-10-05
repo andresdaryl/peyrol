@@ -23,6 +23,11 @@ export const attendanceAPI = {
   create: (data) => axios.post(`${API_URL}/attendance`, data, { headers: getAuthHeaders() }),
   update: (id, data) => axios.put(`${API_URL}/attendance/${id}`, data, { headers: getAuthHeaders() }),
   delete: (id) => axios.delete(`${API_URL}/attendance/${id}`, { headers: getAuthHeaders() }),
+  getSummary: (employeeId, startDate, endDate) =>
+    axios.get(`${API_URL}/attendance/employee/${employeeId}/summary`, {
+      params: { start_date: startDate, end_date: endDate },
+      headers: getAuthHeaders(),
+    }),
 }
 
 // Payroll Run API
@@ -70,46 +75,74 @@ export const accountAPI = {
   changePassword: (data) => axios.put(`${API_URL}/account/change-password`, data, { headers: getAuthHeaders() }),
 }
 
-// Dashboard API - NOW USING REAL BACKEND ENDPOINTS
-export const dashboardAPI = {
-  // Get overall dashboard statistics
-  getStats: () => axios.get(`${API_URL}/dashboard/stats`, { headers: getAuthHeaders() }),
+// Leaves API
+export const leaveAPI = {
+  request: (data) => axios.post(`${API_URL}/leaves`, data, { headers: getAuthHeaders() }),
+  getAll: (params) => axios.get(`${API_URL}/leaves`, { params, headers: getAuthHeaders() }),
+  update: (id, data) => axios.put(`${API_URL}/leaves/${id}`, data, { headers: getAuthHeaders() }),
+  getBalance: (employeeId) => axios.get(`${API_URL}/leaves/balance/${employeeId}`, { headers: getAuthHeaders() }),
+  initializeBalance: (employeeId) => 
+    axios.post(`${API_URL}/leaves/initialize-balance/${employeeId}`, {}, { headers: getAuthHeaders() }),
+  assignCredits: (employeeId, sickLeave, vacationLeave, reason) =>
+    axios.post(`${API_URL}/leaves/assign-credits`, {
+      employee_id: employeeId,
+      sick_leave: sickLeave,
+      vacation_leave: vacationLeave,
+      reason: reason
+    }, { headers: getAuthHeaders() }),
+  bulkInitialize: () =>
+    axios.post(`${API_URL}/leaves/bulk-initialize`, {}, { headers: getAuthHeaders() }),
+  annualReset: (year) =>
+    axios.post(`${API_URL}/leaves/annual-reset`, { year }, { headers: getAuthHeaders() }),
+  getBalanceSummary: () =>
+    axios.get(`${API_URL}/leaves/balance-summary`, { headers: getAuthHeaders() }),  
+}
 
-  // Get attendance trends for the last N days
+// Holidays API
+export const holidayAPI = {
+  create: (data) => axios.post(`${API_URL}/holidays`, data, { headers: getAuthHeaders() }),
+  getAll: (params) => axios.get(`${API_URL}/holidays`, { params, headers: getAuthHeaders() }),
+  update: (id, data) => axios.put(`${API_URL}/holidays/${id}`, data, { headers: getAuthHeaders() }),
+  delete: (id) => axios.delete(`${API_URL}/holidays/${id}`, { headers: getAuthHeaders() }),
+  bulkCreate: (data) => axios.post(`${API_URL}/holidays/bulk-create`, data, { headers: getAuthHeaders() }),
+}
+
+// Dashboard API
+export const dashboardAPI = {
+  getStats: () => axios.get(`${API_URL}/dashboard/stats`, { headers: getAuthHeaders() }),
   getAttendanceTrends: (days = 30) =>
     axios.get(`${API_URL}/dashboard/attendance-trends`, {
       params: { days },
       headers: getAuthHeaders(),
     }),
-
-  // Get today's attendance breakdown
   getAttendanceBreakdown: () => axios.get(`${API_URL}/dashboard/attendance-breakdown`, { headers: getAuthHeaders() }),
-
-  // Get payroll trends for the last N months
   getPayrollTrends: (months = 6) =>
     axios.get(`${API_URL}/dashboard/payroll-trends`, {
       params: { months },
       headers: getAuthHeaders(),
     }),
-
-  // Get employee count by department
   getEmployeesByDepartment: () =>
     axios.get(`${API_URL}/dashboard/employees-by-department`, { headers: getAuthHeaders() }),
-
-  // Get payroll amount by department
   getPayrollByDepartment: () => axios.get(`${API_URL}/dashboard/payroll-by-department`, { headers: getAuthHeaders() }),
-
-  // Get attendance rates by department
   getDepartmentAttendanceRates: (days = 30) =>
     axios.get(`${API_URL}/dashboard/department-attendance-rates`, {
       params: { days },
       headers: getAuthHeaders(),
     }),
-
-  // Get recent activity (attendance, payrolls, employees)
   getRecentActivity: (limit = 5) =>
     axios.get(`${API_URL}/dashboard/recent-activity`, {
       params: { limit },
+      headers: getAuthHeaders(),
+    }),
+  getAttendanceDeductions: (startDate, endDate) =>
+    axios.get(`${API_URL}/dashboard/attendance-deductions`, {
+      params: { start_date: startDate, end_date: endDate },
+      headers: getAuthHeaders(),
+    }),
+  getLeaveStatistics: () => axios.get(`${API_URL}/dashboard/leave-statistics`, { headers: getAuthHeaders() }),
+  getHolidayCalendar: (year) =>
+    axios.get(`${API_URL}/dashboard/holiday-calendar`, {
+      params: { year },
       headers: getAuthHeaders(),
     }),
 }

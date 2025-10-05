@@ -1,110 +1,112 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Calendar, Search, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
-import { attendanceAPI, employeeAPI } from '../utils/api';
-import { toast } from 'sonner';
+"use client"
+
+import { useState, useEffect } from "react"
+import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react"
+import { attendanceAPI, employeeAPI } from "../utils/api"
+import { toast } from "sonner"
 
 const Attendance = () => {
-  const [attendance, setAttendance] = useState([]);
-  const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [employeeFilter, setEmployeeFilter] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [limit] = useState(10);
-  const [sortBy, setSortBy] = useState('date');
-  const [sortOrder, setSortOrder] = useState('desc');
-  const [showModal, setShowModal] = useState(false);
-  const [editingRecord, setEditingRecord] = useState(null);
+  const [attendance, setAttendance] = useState([])
+  const [employees, setEmployees] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [employeeFilter, setEmployeeFilter] = useState("")
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [limit] = useState(10)
+  const [sortBy, setSortBy] = useState("date")
+  const [sortOrder, setSortOrder] = useState("desc")
+  const [showModal, setShowModal] = useState(false)
+  const [editingRecord, setEditingRecord] = useState(null)
   const [formData, setFormData] = useState({
-    employee_id: '',
-    date: new Date().toISOString().split('T')[0],
-    time_in: '08:00',
-    time_out: '17:00',
-    shift_type: 'day',
+    employee_id: "",
+    date: new Date().toISOString().split("T")[0],
+    time_in: "08:00",
+    time_out: "17:00",
+    shift_type: "day",
     overtime_hours: 0,
     nightshift_hours: 0,
-    notes: ''
-  });
+    notes: "",
+  })
 
   useEffect(() => {
-    fetchEmployees();
-  }, []);
+    fetchEmployees()
+  }, [])
 
   useEffect(() => {
-    fetchAttendance();
-  }, [page, employeeFilter, sortBy, sortOrder]);
+    fetchAttendance()
+  }, [page, employeeFilter, sortBy, sortOrder])
 
   const fetchEmployees = async () => {
     try {
-      const params = new URLSearchParams({ limit: '1000' });
-      const response = await employeeAPI.getAll(params);
-      setEmployees(response.data.data.filter(e => e.status === 'active'));
+      const params = new URLSearchParams({ limit: "1000" })
+      const response = await employeeAPI.getAll(params)
+      setEmployees(response.data.data.filter((e) => e.status === "active"))
     } catch (error) {
-      toast.error('Failed to fetch employees');
+      toast.error("Failed to fetch employees")
     }
-  };
+  }
 
   const fetchAttendance = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
         sort_by: sortBy,
-        sort_order: sortOrder
-      });
-      
-      if (employeeFilter) params.append('employee_id', employeeFilter);
-      
-      const response = await attendanceAPI.getAll(params);
-      setAttendance(response.data.data);
-      setTotal(response.data.total);
-      setTotalPages(response.data.pages);
+        sort_order: sortOrder,
+      })
+
+      if (employeeFilter) params.append("employee_id", employeeFilter)
+
+      const response = await attendanceAPI.getAll(params)
+      setAttendance(response.data.data)
+      setTotal(response.data.total)
+      setTotalPages(response.data.pages)
     } catch (error) {
-      toast.error('Failed to fetch attendance');
+      toast.error("Failed to fetch attendance")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleSort = (field) => {
     if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
     } else {
-      setSortBy(field);
-      setSortOrder('asc');
+      setSortBy(field)
+      setSortOrder("asc")
     }
-  };
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
       const dataToSend = {
         ...formData,
-        overtime_hours: parseFloat(formData.overtime_hours),
-        nightshift_hours: parseFloat(formData.nightshift_hours)
-      };
-
-      if (editingRecord) {
-        await attendanceAPI.update(editingRecord.id, dataToSend);
-        toast.success('Attendance updated');
-      } else {
-        await attendanceAPI.create(dataToSend);
-        toast.success('Attendance recorded');
+        overtime_hours: Number.parseFloat(formData.overtime_hours),
+        nightshift_hours: Number.parseFloat(formData.nightshift_hours),
       }
 
-      fetchAttendance();
-      setShowModal(false);
-      resetForm();
+      if (editingRecord) {
+        await attendanceAPI.update(editingRecord.id, dataToSend)
+        toast.success("Attendance updated")
+      } else {
+        await attendanceAPI.create(dataToSend)
+        toast.success("Attendance recorded")
+      }
+
+      fetchAttendance()
+      setShowModal(false)
+      resetForm()
     } catch (error) {
-      toast.error('Operation failed');
+      toast.error("Operation failed")
     }
-  };
+  }
 
   const handleEdit = (record) => {
-    setEditingRecord(record);
+    setEditingRecord(record)
     setFormData({
       employee_id: record.employee_id,
       date: record.date,
@@ -113,48 +115,48 @@ const Attendance = () => {
       shift_type: record.shift_type,
       overtime_hours: record.overtime_hours,
       nightshift_hours: record.nightshift_hours,
-      notes: record.notes || ''
-    });
-    setShowModal(true);
-  };
+      notes: record.notes || "",
+    })
+    setShowModal(true)
+  }
 
   const handleDelete = async (id) => {
-    if (window.confirm('Delete this attendance record?')) {
+    if (window.confirm("Delete this attendance record?")) {
       try {
-        await attendanceAPI.delete(id);
-        toast.success('Attendance deleted');
-        fetchAttendance();
+        await attendanceAPI.delete(id)
+        toast.success("Attendance deleted")
+        fetchAttendance()
       } catch (error) {
-        toast.error('Failed to delete');
+        toast.error("Failed to delete")
       }
     }
-  };
+  }
 
   const resetForm = () => {
     setFormData({
-      employee_id: '',
-      date: new Date().toISOString().split('T')[0],
-      time_in: '08:00',
-      time_out: '17:00',
-      shift_type: 'day',
+      employee_id: "",
+      date: new Date().toISOString().split("T")[0],
+      time_in: "08:00",
+      time_out: "17:00",
+      shift_type: "day",
       overtime_hours: 0,
       nightshift_hours: 0,
-      notes: ''
-    });
-    setEditingRecord(null);
-  };
+      notes: "",
+    })
+    setEditingRecord(null)
+  }
 
   const getEmployeeName = (empId) => {
-    const emp = employees.find(e => e.id === empId);
-    return emp ? emp.name : 'Unknown';
-  };
+    const emp = employees.find((e) => e.id === empId)
+    return emp ? emp.name : "Unknown"
+  }
 
   if (loading && page === 1) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
-    );
+    )
   }
 
   return (
@@ -164,12 +166,14 @@ const Attendance = () => {
           <h1 className="text-4xl font-bold text-slate-800 dark:text-white" data-testid="attendance-title">
             Attendance
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">Track employee work hours ({total} records)</p>
+          <p className="text-slate-600 dark:text-slate-400">
+            Track employee work hours and deductions ({total} records)
+          </p>
         </div>
         <button
           onClick={() => {
-            resetForm();
-            setShowModal(true);
+            resetForm()
+            setShowModal(true)
           }}
           className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
           data-testid="add-attendance-button"
@@ -186,15 +190,17 @@ const Attendance = () => {
             <select
               value={employeeFilter}
               onChange={(e) => {
-                setEmployeeFilter(e.target.value);
-                setPage(1);
+                setEmployeeFilter(e.target.value)
+                setPage(1)
               }}
               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-amber-500 text-slate-800 dark:text-white"
               data-testid="employee-filter"
             >
               <option value="">All Employees</option>
-              {employees?.map(emp => (
-                <option key={emp.id} value={emp.id}>{emp.name}</option>
+              {employees?.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.name}
+                </option>
               ))}
             </select>
           </div>
@@ -207,7 +213,10 @@ const Attendance = () => {
             <thead className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold">Employee</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold cursor-pointer hover:bg-amber-600" onClick={() => handleSort('date')}>
+                <th
+                  className="px-6 py-4 text-left text-sm font-semibold cursor-pointer hover:bg-amber-600"
+                  onClick={() => handleSort("date")}
+                >
                   <div className="flex items-center space-x-1">
                     <span>Date</span>
                     <ArrowUpDown className="w-4 h-4" />
@@ -217,13 +226,15 @@ const Attendance = () => {
                 <th className="px-6 py-4 text-left text-sm font-semibold">Time Out</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold">Shift</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold">OT Hours</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Late Deduction</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold">Total Deductions</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {attendance.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
+                  <td colSpan="9" className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
                     No attendance records found
                   </td>
                 </tr>
@@ -237,15 +248,42 @@ const Attendance = () => {
                     <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{record.time_in}</td>
                     <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{record.time_out}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        record.shift_type === 'day' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                        record.shift_type === 'night' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                        'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                      }`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          record.shift_type === "day"
+                            ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                            : record.shift_type === "night"
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                              : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                        }`}
+                      >
                         {record.shift_type}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{record.overtime_hours}h</td>
+                    <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
+                      {record.late_deduction?.amount > 0 ? (
+                        <div className="flex flex-col">
+                          <span className="text-red-600 dark:text-red-400 font-medium">
+                            ₱{record.late_deduction.amount.toFixed(2)}
+                          </span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
+                            ({record.late_deduction.minutes} min)
+                          </span>
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {record.total_deductions > 0 ? (
+                        <span className="text-red-600 dark:text-red-400 font-bold">
+                          ₱{record.total_deductions.toFixed(2)}
+                        </span>
+                      ) : (
+                        <span className="text-green-600 dark:text-green-400">-</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex space-x-2">
                         <button
@@ -277,7 +315,7 @@ const Attendance = () => {
             </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
@@ -287,7 +325,7 @@ const Attendance = () => {
                 Page {page} of {totalPages}
               </span>
               <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
@@ -298,19 +336,21 @@ const Attendance = () => {
         )}
       </div>
 
-      {/* Modal - same as before */}
+      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full">
             <div className="p-6 border-b border-slate-200 dark:border-slate-700">
               <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
-                {editingRecord ? 'Edit Attendance' : 'Add Attendance'}
+                {editingRecord ? "Edit Attendance" : "Add Attendance"}
               </h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Employee *</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Employee *
+                  </label>
                   <select
                     value={formData.employee_id}
                     onChange={(e) => setFormData({ ...formData, employee_id: e.target.value })}
@@ -319,8 +359,10 @@ const Attendance = () => {
                     data-testid="attendance-form-employee"
                   >
                     <option value="">Select employee</option>
-                    {employees?.map(emp => (
-                      <option key={emp.id} value={emp.id}>{emp.name}</option>
+                    {employees?.map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -335,7 +377,9 @@ const Attendance = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Shift Type *</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Shift Type *
+                  </label>
                   <select
                     value={formData.shift_type}
                     onChange={(e) => setFormData({ ...formData, shift_type: e.target.value })}
@@ -357,7 +401,9 @@ const Attendance = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Time Out *</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Time Out *
+                  </label>
                   <input
                     type="time"
                     value={formData.time_out}
@@ -367,7 +413,9 @@ const Attendance = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Overtime Hours</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Overtime Hours
+                  </label>
                   <input
                     type="number"
                     step="0.5"
@@ -377,7 +425,9 @@ const Attendance = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Night Shift Hours</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Night Shift Hours
+                  </label>
                   <input
                     type="number"
                     step="0.5"
@@ -400,8 +450,8 @@ const Attendance = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setShowModal(false);
-                    resetForm();
+                    setShowModal(false)
+                    resetForm()
                   }}
                   className="px-6 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 transition-colors"
                 >
@@ -412,7 +462,7 @@ const Attendance = () => {
                   className="px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all"
                   data-testid="attendance-form-submit"
                 >
-                  {editingRecord ? 'Update' : 'Create'}
+                  {editingRecord ? "Update" : "Create"}
                 </button>
               </div>
             </form>
@@ -420,7 +470,7 @@ const Attendance = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Attendance;
+export default Attendance

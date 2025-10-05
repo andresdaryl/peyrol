@@ -12,6 +12,8 @@ import Payroll from './pages/Payroll';
 import Payslips from './pages/Payslips';
 import './App.css';
 import AccountSettings from './pages/AccountSettings';
+import Holidays from './pages/Holidays';
+import Leaves from './pages/Leaves';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -65,6 +67,26 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route
+              path="/leaves"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Leaves />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/holidays"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Holidays />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />                        
             <Route
               path="/payroll"
               element={

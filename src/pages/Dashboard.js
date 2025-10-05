@@ -1,7 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, Clock, PhilippinePeso, TrendingUp, TrendingDown, Activity, PieChartIcon, BarChart3 } from "lucide-react"
+import {
+  Users,
+  Clock,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  PieChartIcon,
+  BarChart3,
+  AlertCircle,
+  Calendar,
+  FileText,
+  MinusCircle,
+} from "lucide-react"
 import { dashboardAPI } from "../utils/api"
 import {
   LineChart,
@@ -27,6 +40,9 @@ const Dashboard = () => {
   const [employeesByDept, setEmployeesByDept] = useState(null)
   const [payrollByDept, setPayrollByDept] = useState(null)
   const [recentActivity, setRecentActivity] = useState(null)
+  const [attendanceDeductions, setAttendanceDeductions] = useState(null)
+  const [leaveStatistics, setLeaveStatistics] = useState(null)
+  const [holidayCalendar, setHolidayCalendar] = useState(null)
   const [loading, setLoading] = useState(true)
   const [attendancePeriod, setAttendancePeriod] = useState(30)
   const [payrollPeriod, setPayrollPeriod] = useState(6)
@@ -38,16 +54,34 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
-      const [statsRes, trendsRes, breakdownRes, payrollRes, empDeptRes, payrollDeptRes, activityRes] =
-        await Promise.all([
-          dashboardAPI.getStats(),
-          dashboardAPI.getAttendanceTrends(attendancePeriod),
-          dashboardAPI.getAttendanceBreakdown(),
-          dashboardAPI.getPayrollTrends(payrollPeriod),
-          dashboardAPI.getEmployeesByDepartment(),
-          dashboardAPI.getPayrollByDepartment(),
-          dashboardAPI.getRecentActivity(5),
-        ])
+      const now = new Date()
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0]
+      const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0]
+      const currentYear = now.getFullYear()
+
+      const [
+        statsRes,
+        trendsRes,
+        breakdownRes,
+        payrollRes,
+        empDeptRes,
+        payrollDeptRes,
+        activityRes,
+        deductionsRes,
+        leaveRes,
+        holidayRes,
+      ] = await Promise.all([
+        dashboardAPI.getStats(),
+        dashboardAPI.getAttendanceTrends(attendancePeriod),
+        dashboardAPI.getAttendanceBreakdown(),
+        dashboardAPI.getPayrollTrends(payrollPeriod),
+        dashboardAPI.getEmployeesByDepartment(),
+        dashboardAPI.getPayrollByDepartment(),
+        dashboardAPI.getRecentActivity(5),
+        dashboardAPI.getAttendanceDeductions(startDate, endDate),
+        dashboardAPI.getLeaveStatistics(),
+        dashboardAPI.getHolidayCalendar(currentYear),
+      ])
 
       setStats(statsRes.data)
       setAttendanceTrends(trendsRes.data)
@@ -56,6 +90,9 @@ const Dashboard = () => {
       setEmployeesByDept(empDeptRes.data)
       setPayrollByDept(payrollDeptRes.data)
       setRecentActivity(activityRes.data)
+      setAttendanceDeductions(deductionsRes.data)
+      setLeaveStatistics(leaveRes.data)
+      setHolidayCalendar(holidayRes.data)
     } catch (error) {
       console.error("Failed to fetch dashboard data", error)
     } finally {
@@ -127,9 +164,9 @@ const Dashboard = () => {
     return new Intl.NumberFormat("en-PH", {
       style: "currency",
       currency: "PHP",
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
+      minimumFractionDigits: 0,
+    }).format(value)
+  }
 
   const statCards = [
     {
@@ -154,7 +191,7 @@ const Dashboard = () => {
       change:
         ((stats?.payroll.thisMonthAmount - stats?.payroll.lastMonthAmount) / stats?.payroll.lastMonthAmount) * 100,
       subtext: "Total cost",
-      icon: PhilippinePeso,
+      icon: DollarSign,
       gradient: "from-amber-500 to-orange-500",
     },
     {
@@ -207,6 +244,180 @@ const Dashboard = () => {
             <p className="text-xs text-slate-500 dark:text-slate-400">{stat.subtext}</p>
           </div>
         ))}
+      </div>
+
+      {/* Attendance Deductions, Leave Statistics, and Holiday Calendar */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Attendance Deductions */}
+        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-rose-500 flex items-center justify-center">
+              <MinusCircle className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Attendance Deductions</h2>
+          </div>
+          {attendanceDeductions && (
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Total Deductions</p>
+                <p className="text-3xl font-bold text-red-600 dark:text-red-400">
+                  {formatCurrency(attendanceDeductions.deductions.total)}
+                </p>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800 dark:text-white">Late</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {attendanceDeductions.deductions.late.count} occurrences
+                    </p>
+                  </div>
+                  <span className="text-sm font-bold text-red-600 dark:text-red-400">
+                    {formatCurrency(attendanceDeductions.deductions.late.total_amount)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800 dark:text-white">Absent</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {attendanceDeductions.deductions.absent.count} occurrences
+                    </p>
+                  </div>
+                  <span className="text-sm font-bold text-red-600 dark:text-red-400">
+                    {formatCurrency(attendanceDeductions.deductions.absent.total_amount)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800 dark:text-white">Undertime</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {attendanceDeductions.deductions.undertime.count} occurrences
+                    </p>
+                  </div>
+                  <span className="text-sm font-bold text-red-600 dark:text-red-400">
+                    {formatCurrency(attendanceDeductions.deductions.undertime.total_amount)}
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 text-center pt-2">
+                Period: {new Date(attendanceDeductions.period.start_date).toLocaleDateString()} -{" "}
+                {new Date(attendanceDeductions.period.end_date).toLocaleDateString()}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Leave Statistics */}
+        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+              <FileText className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Leave Statistics</h2>
+          </div>
+          {leaveStatistics && (
+            <div className="space-y-4">
+              <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border-2 border-amber-200 dark:border-amber-800">
+                <div className="flex items-center space-x-2 mb-1">
+                  <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">Pending Requests</p>
+                </div>
+                <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+                  {leaveStatistics.pending_requests}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <p className="text-xs text-green-600 dark:text-green-400 mb-1">Approved</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {leaveStatistics.approved_this_month}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">this month</p>
+                </div>
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <p className="text-xs text-red-600 dark:text-red-400 mb-1">Rejected</p>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{leaveStatistics.total_rejected}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">all time</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">This Month Breakdown</p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <span className="text-sm text-slate-700 dark:text-slate-300">Sick Leave</span>
+                    <span className="text-sm font-bold text-slate-800 dark:text-white">
+                      {leaveStatistics.this_month_breakdown.sick_leave}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <span className="text-sm text-slate-700 dark:text-slate-300">Vacation Leave</span>
+                    <span className="text-sm font-bold text-slate-800 dark:text-white">
+                      {leaveStatistics.this_month_breakdown.vacation_leave}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <span className="text-sm text-slate-700 dark:text-slate-300">Other</span>
+                    <span className="text-sm font-bold text-slate-800 dark:text-white">
+                      {leaveStatistics.this_month_breakdown.other}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Holiday Calendar */}
+        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Upcoming Holidays</h2>
+          </div>
+          {holidayCalendar && (
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">Total Holidays {holidayCalendar.year}</p>
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{holidayCalendar.total_holidays}</p>
+              </div>
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {holidayCalendar.upcoming_holidays.map((holiday) => (
+                  <div
+                    key={holiday.id}
+                    className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-slate-800 dark:text-white">{holiday.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {new Date(holiday.date).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </p>
+                      </div>
+                      <span className="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full whitespace-nowrap">
+                        {holiday.days_until} days
+                      </span>
+                    </div>
+                    <span
+                      className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${
+                        holiday.type === "regular_holiday"
+                          ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                          : "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400"
+                      }`}
+                    >
+                      {holiday.type.replace("_", " ")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Charts Grid */}
@@ -284,7 +495,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                <PhilippinePeso className="w-5 h-5 text-white" />
+                <DollarSign className="w-5 h-5 text-white" />
               </div>
               <h2 className="text-xl font-bold text-slate-800 dark:text-white">Payroll Trends</h2>
             </div>
@@ -301,7 +512,7 @@ const Dashboard = () => {
             <LineChart data={payrollChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="month" stroke="#64748b" style={{ fontSize: "12px" }} />
-              <YAxis stroke="#64748b" style={{ fontSize: "12px" }} tickFormatter={(value) => `₱${value / 1000}k`} />
+              <YAxis stroke="#64748b" style={{ fontSize: "12px" }} tickFormatter={(value) => `$${value / 1000}k`} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -328,7 +539,7 @@ const Dashboard = () => {
             <BarChart data={payrollDeptData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="department" stroke="#64748b" style={{ fontSize: "12px" }} />
-              <YAxis stroke="#64748b" style={{ fontSize: "12px" }} tickFormatter={(value) => `₱${value / 1000}k`} />
+              <YAxis stroke="#64748b" style={{ fontSize: "12px" }} tickFormatter={(value) => `$${value / 1000}k`} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "rgba(255, 255, 255, 0.95)",

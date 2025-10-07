@@ -226,74 +226,68 @@ const Employees = () => {
 
       {/* Employee Table */}
       <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden relative">
-        {loading && (
-          <div className="absolute inset-0 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
-          </div>
-        )}
-
-        {!loading ? (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
-              <tr>
-                <th
-                  className="px-6 py-4 text-left text-sm font-semibold cursor-pointer hover:bg-amber-600"
-                  onClick={() => handleSort("name")}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Name</span>
-                    <ArrowUpDown className="w-4 h-4" />
-                  </div>
-                </th>
-                <th
-                  className="px-6 py-4 text-left text-sm font-semibold cursor-pointer hover:bg-amber-600"
-                  onClick={() => handleSort("role")}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Role</span>
-                    <ArrowUpDown className="w-4 h-4" />
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Department</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Salary Type</th>
-                <th
-                  className="px-6 py-4 text-left text-sm font-semibold cursor-pointer hover:bg-amber-600"
-                  onClick={() => handleSort("salary_rate")}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Rate</span>
-                    <ArrowUpDown className="w-4 h-4" />
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-              {employees.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
-                    No employees found
-                  </td>
-                </tr>
-              ) : (
-                employees?.map((employee) => (
-                  <EmployeeTableRow
-                    key={employee.id}
-                    employee={employee}
-                    onEdit={handleEdit}
-                    onViewBalance={handleViewBalance}
-                    onInitializeBalance={handleInitializeBalance}
-                    onDelete={handleDelete}
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>                
-        ) : (
+        {loading ? (
           <EmployeeTableSkeleton />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+                <tr>
+                  <th
+                    className="px-6 py-4 text-left text-sm font-semibold cursor-pointer hover:bg-amber-600"
+                    onClick={() => handleSort("name")}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Name</span>
+                      <ArrowUpDown className="w-4 h-4" />
+                    </div>
+                  </th>
+                  <th
+                    className="px-6 py-4 text-left text-sm font-semibold cursor-pointer hover:bg-amber-600"
+                    onClick={() => handleSort("role")}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Role</span>
+                      <ArrowUpDown className="w-4 h-4" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Department</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Salary Type</th>
+                  <th
+                    className="px-6 py-4 text-left text-sm font-semibold cursor-pointer hover:bg-amber-600"
+                    onClick={() => handleSort("salary_rate")}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Rate</span>
+                      <ArrowUpDown className="w-4 h-4" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                {employees.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
+                      No employees found
+                    </td>
+                  </tr>
+                ) : (
+                  employees?.map((employee) => (
+                    <EmployeeTableRow
+                      key={employee.id}
+                      employee={employee}
+                      onEdit={handleEdit}
+                      onViewBalance={handleViewBalance}
+                      onInitializeBalance={handleInitializeBalance}
+                      onDelete={handleDelete}
+                    />
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>                    
         )}
 
         {/* Pagination */}

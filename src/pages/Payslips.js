@@ -42,7 +42,7 @@ const Payslips = () => {
       if (selectedRun) params.run_id = selectedRun;
       
       const response = await payslipAPI.getAll(params);
-      setPayslips(response.data);
+      setPayslips(response.data?.data);
     } catch (error) {
       toast.error('Failed to fetch payslips');
     }

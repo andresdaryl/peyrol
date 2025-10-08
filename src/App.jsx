@@ -14,6 +14,7 @@ import './App.css';
 import AccountSettings from './pages/AccountSettings';
 import Holidays from './pages/Holidays';
 import Leaves from './pages/Leaves';
+import CompanyProfile from './pages/CompanyProfile';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -116,7 +117,17 @@ function App() {
                   </Layout>
                 </PrivateRoute>
               }
-            />            
+            />
+            <Route
+              path="/company-profile"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <CompanyProfile />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />             
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>
         </BrowserRouter>

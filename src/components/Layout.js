@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
   Users,
   Clock,
-  DollarSign,
+  CreditCard,
   FileText,
   LogOut,
   Moon,
@@ -18,6 +18,7 @@ import {
   User,
   Calendar,
   Briefcase,
+  Building2,
 } from "lucide-react"
 
 const Layout = ({ children }) => {
@@ -38,11 +39,14 @@ const Layout = ({ children }) => {
     { path: "/attendance", icon: Clock, label: "Attendance" },
     { path: "/leaves", icon: Briefcase, label: "Leaves" },
     { path: "/holidays", icon: Calendar, label: "Holidays" },
-    { path: "/payroll", icon: DollarSign, label: "Payroll" },
+    { path: "/payroll", icon: CreditCard, label: "Payroll" },
     { path: "/payslips", icon: FileText, label: "Payslips" },
   ]
 
-  const userNavItems = [{ path: "/account-settings", icon: User, label: "Account Settings" }]
+  const userNavItems = [
+    { path: "/company-profile", icon: Building2, label: "Company Profile" },
+    { path: "/account-settings", icon: User, label: "Account Settings" },
+  ]
 
   const isActive = (path) => location.pathname === path
 

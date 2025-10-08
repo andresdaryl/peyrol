@@ -146,3 +146,44 @@ export const dashboardAPI = {
       headers: getAuthHeaders(),
     }),
 }
+
+// Auth API
+export const authAPI = {
+  deleteAccount: () => axios.delete(`${API_URL}/account/delete-account`, { headers: getAuthHeaders() }),
+}
+
+// Employee Image API
+export const employeeImageAPI = {
+  uploadImage: (id, file) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    return axios.post(`${API_URL}/employees/${id}/upload-image`, formData, { headers: getAuthHeaders() })
+  },
+  deleteImage: (id) => axios.delete(`${API_URL}/employees/${id}/image`, { headers: getAuthHeaders() }),
+  initializeLeaves: (id) => axios.post(`${API_URL}/employees/${id}/initialize-leaves`, {}, { headers: getAuthHeaders() }),
+}
+
+// Attendance Import API
+export const attendanceImportAPI = {
+  importFile: (file) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    return axios.post(`${API_URL}/attendance/import`, formData, { headers: getAuthHeaders() })
+  },
+  downloadTemplate: () => axios.get(`${API_URL}/attendance/import/template`, {
+    headers: getAuthHeaders(),
+    responseType: "blob",
+  }),
+}
+
+// Company API
+export const companyAPI = {
+  getProfile: () => axios.get(`${API_URL}/company/profile`, { headers: getAuthHeaders() }),
+  updateProfile: (data) => axios.put(`${API_URL}/company/profile`, data, { headers: getAuthHeaders() }),
+  uploadLogo: (file) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    return axios.post(`${API_URL}/company/logo`, formData, { headers: getAuthHeaders() })
+  },
+  deleteLogo: () => axios.delete(`${API_URL}/company/logo`, { headers: getAuthHeaders() }),
+}

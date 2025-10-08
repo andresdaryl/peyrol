@@ -58,13 +58,13 @@ const AttendanceTable = ({ attendance, handleSort, sortBy, handleEdit, handleDel
                 </td>
                 <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{record.overtime_hours}h</td>
                 <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
-                  {record.late_deduction?.amount > 0 ? (
+                  {record.late_deduction > 0 ? (
                     <div className="flex flex-col">
                       <span className="text-red-600 dark:text-red-400 font-medium">
-                        ₱{record.late_deduction.amount.toFixed(2)}
+                        ₱{record.late_deduction.toFixed(2)}
                       </span>
                       <span className="text-xs text-slate-500 dark:text-slate-400">
-                        ({record.late_deduction.minutes} min)
+                        ({record.late_minutes} min)
                       </span>
                     </div>
                   ) : (
@@ -72,9 +72,9 @@ const AttendanceTable = ({ attendance, handleSort, sortBy, handleEdit, handleDel
                   )}
                 </td>
                 <td className="px-6 py-4">
-                  {record.total_deductions > 0 ? (
+                  {(record.late_deduction + record.undertime_deduction) > 0 ? (
                     <span className="text-red-600 dark:text-red-400 font-bold">
-                      ₱{record.total_deductions.toFixed(2)}
+                      ₱{(record.late_deduction + record.undertime_deduction).toFixed(2)}
                     </span>
                   ) : (
                     <span className="text-green-600 dark:text-green-400">-</span>

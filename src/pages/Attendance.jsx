@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus } from "lucide-react"
+import { Plus, Upload } from "lucide-react"
 import { attendanceAPI, employeeAPI } from "../utils/api"
 import { toast } from "sonner"
 import AttendanceFilters from "../components/attendance/AttendanceFilters"
 import AttendanceTable from "../components/attendance/AttendanceTable"
 import AttendanceTableSkeleton from "../components/attendance/AttendanceTableSkeleton"
 import AttendanceModal from "../components/attendance/AttendanceModal"
+import ImportModal from "../components/attendance/ImportModal"
 import Pagination from "../components/attendance/Pagination"
 
 const Attendance = () => {
@@ -23,6 +24,7 @@ const Attendance = () => {
   const [sortBy, setSortBy] = useState("date")
   const [sortOrder, setSortOrder] = useState("desc")
   const [showModal, setShowModal] = useState(false)
+  const [showImportModal, setShowImportModal] = useState(false)
   const [editingRecord, setEditingRecord] = useState(null)
   const [formData, setFormData] = useState({
     employee_id: "",
@@ -156,6 +158,11 @@ const Attendance = () => {
     return emp ? emp.name : "Unknown"
   }
 
+  const handleImportSuccess = () => {
+    fetchAttendance()
+    toast.success("Attendance imported successfully")
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -167,17 +174,27 @@ const Attendance = () => {
             Track employee work hours and deductions ({total} records)
           </p>
         </div>
-        <button
-          onClick={() => {
-            resetForm()
-            setShowModal(true)
-          }}
-          className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
-          data-testid="add-attendance-button"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Add Attendance</span>
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
+            data-testid="import-attendance-button"
+          >
+            <Upload className="w-5 h-5" />
+            <span>Import</span>
+          </button>
+          <button
+            onClick={() => {
+              resetForm()
+              setShowModal(true)
+            }}
+            className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
+            data-testid="add-attendance-button"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Add Attendance</span>
+          </button>
+        </div>
       </div>
 
       <AttendanceFilters
@@ -213,6 +230,12 @@ const Attendance = () => {
         employees={employees}
         handleSubmit={handleSubmit}
         resetForm={resetForm}
+      />
+
+      <ImportModal
+        showModal={showImportModal}
+        setShowModal={setShowImportModal}
+        onImportSuccess={handleImportSuccess}
       />
     </div>
   )

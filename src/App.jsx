@@ -15,6 +15,9 @@ import AccountSettings from './pages/AccountSettings';
 import Holidays from './pages/Holidays';
 import Leaves from './pages/Leaves';
 import CompanyProfile from './pages/CompanyProfile';
+import Users from './pages/Users';
+import TaxConfig from './pages/TaxConfig';
+import BenefitsConfig from './pages/BenefitsConfig';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -127,7 +130,37 @@ function App() {
                   </Layout>
                 </PrivateRoute>
               }
-            />             
+            />
+            <Route
+              path="/users"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Users />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/benefits-config"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <BenefitsConfig />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/tax-config"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <TaxConfig />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />            
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>
         </BrowserRouter>

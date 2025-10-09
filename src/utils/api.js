@@ -187,3 +187,64 @@ export const companyAPI = {
   },
   deleteLogo: () => axios.delete(`${API_URL}/company/logo`, { headers: getAuthHeaders() }),
 }
+
+// User API
+export const userAPI = {
+  getAll: (params = {}) => {
+    return axios.get(`${API_URL}/users`, {
+      params: params,
+      headers: getAuthHeaders(),
+    })
+  },
+  getById: (id) => axios.get(`${API_URL}/users/${id}`, { headers: getAuthHeaders() }),
+  create: (data) => axios.post(`${API_URL}/users`, data, { headers: getAuthHeaders() }),
+  update: (id, data) => axios.put(`${API_URL}/users/${id}`, data, { headers: getAuthHeaders() }),
+  delete: (id) => axios.delete(`${API_URL}/users/${id}`, { headers: getAuthHeaders() }),
+  activate: (id) => axios.post(`${API_URL}/users/${id}/activate`, {}, { headers: getAuthHeaders() }),
+  resetPassword: (id, newPassword) =>
+    axios.post(
+      `${API_URL}/users/${id}/reset-password`,
+      { new_password: newPassword },
+      { headers: getAuthHeaders() }
+    ),
+  getEmployeesWithoutAccounts: () =>
+    axios.get(`${API_URL}/users/employees/without-accounts`, { headers: getAuthHeaders() }),
+}
+
+// Benefits Configuration API
+export const benefitsConfigAPI = {
+  getAll: (params = {}) =>
+    axios.get(`${API_URL}/benefits-config`, { params, headers: getAuthHeaders() }),
+  getById: (id) =>
+    axios.get(`${API_URL}/benefits-config/${id}`, { headers: getAuthHeaders() }),
+  create: (data) =>
+    axios.post(`${API_URL}/benefits-config`, data, { headers: getAuthHeaders() }),
+  update: (id, data) =>
+    axios.put(`${API_URL}/benefits-config/${id}`, data, { headers: getAuthHeaders() }),
+  delete: (id) =>
+    axios.delete(`${API_URL}/benefits-config/${id}`, { headers: getAuthHeaders() }),
+  preview: (benefitType, monthlySalary, year = null) =>
+    axios.get(`${API_URL}/benefits-config/preview/${benefitType}`, {
+      params: { monthly_salary: monthlySalary, ...(year && { year }) },
+      headers: getAuthHeaders(),
+    }),
+}
+
+// Tax Configuration API
+export const taxConfigAPI = {
+  getAll: (params = {}) =>
+    axios.get(`${API_URL}/tax-config`, { params, headers: getAuthHeaders() }),
+  getById: (id) =>
+    axios.get(`${API_URL}/tax-config/${id}`, { headers: getAuthHeaders() }),
+  create: (data) =>
+    axios.post(`${API_URL}/tax-config`, data, { headers: getAuthHeaders() }),
+  update: (id, data) =>
+    axios.put(`${API_URL}/tax-config/${id}`, data, { headers: getAuthHeaders() }),
+  delete: (id) =>
+    axios.delete(`${API_URL}/tax-config/${id}`, { headers: getAuthHeaders() }),
+  preview: (annualIncome, year = null) =>
+    axios.get(`${API_URL}/tax-config/preview`, {
+      params: { annual_income: annualIncome, ...(year && { year }) },
+      headers: getAuthHeaders(),
+    }),
+}

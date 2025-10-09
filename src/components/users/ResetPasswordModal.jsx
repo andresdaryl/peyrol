@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { X, Loader } from "lucide-react"
 import { userAPI } from "../../utils/api"
+import { toast } from "sonner"
 
 const ResetPasswordModal = ({ isOpen, onClose, onSuccess, user }) => {
   const [newPassword, setNewPassword] = useState("")
@@ -27,7 +28,8 @@ const ResetPasswordModal = ({ isOpen, onClose, onSuccess, user }) => {
     setLoading(true)
 
     try {
-      await userAPI.resetPassword(user.id, newPassword)
+      const response = await userAPI.resetPassword(user.id, newPassword)
+      response?.status === 200 && toast.success("Password reset successfully")
       onSuccess()
       onClose()
       setNewPassword("")

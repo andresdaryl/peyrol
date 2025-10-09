@@ -54,8 +54,8 @@ const Users = () => {
       setUsers(response?.data?.data)
       setPagination({
         ...pagination,
-        total: response.total,
-        pages: response.pages,
+        total: response.data?.total,
+        pages: response.data?.pages,
       })
     } catch (error) {
       console.error("Failed to fetch users:", error)
@@ -115,13 +115,14 @@ const Users = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-4xl font-bold text-slate-800 dark:text-white" data-testid="users-title">
-            User Management
+            Users
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">Manage system users and their permissions</p>
+          <p className="text-slate-600 dark:text-slate-400">Manage system users and their permissions ({pagination?.total} total)</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg"
+          className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl shadow-lg hover:shadow-xl transition-all"
+          data-testid="add-users-button"
         >
           <UserPlus className="w-5 h-5" />
           <span>Create User</span>

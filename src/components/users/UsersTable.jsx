@@ -26,7 +26,7 @@ const UsersTable = ({ users, loading, onEdit, onDelete, onActivate, onResetPassw
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">

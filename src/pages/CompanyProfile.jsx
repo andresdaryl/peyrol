@@ -132,7 +132,7 @@ const CompanyProfile = () => {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl shadow-xl border border-amber-200 dark:border-slate-700 p-6">
+      <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-slate-200 dark:border-slate-700">
         <div className="flex items-center space-x-3">
           <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl">
             <Building2 className="w-6 h-6 text-white" />
@@ -163,7 +163,7 @@ const CompanyProfile = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Logo Section */}
         <div className="lg:col-span-1">
-          <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl shadow-xl border border-amber-200 dark:border-slate-700 p-6">
+          <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-slate-200 dark:border-slate-700">
             <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Company Logo</h2>
 
             <div className="space-y-4">
@@ -218,7 +218,7 @@ const CompanyProfile = () => {
         {/* Company Information Form */}
         <div className="lg:col-span-2">
           <form onSubmit={handleSaveProfile} className="space-y-6">
-            <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl shadow-xl border border-amber-200 dark:border-slate-700 p-6">
+            <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-slate-200 dark:border-slate-700">
               <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Company Information</h2>
 
               <div className="space-y-4">
@@ -327,7 +327,7 @@ const CompanyProfile = () => {
       </div>
 
       {/* Company Policies & Notes Section */}
-      <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl shadow-xl border border-amber-200 dark:border-slate-700 p-6">
+      <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-slate-200 dark:border-slate-700">
         <div className="flex items-center space-x-2 mb-4">
           <FileText className="w-5 h-5 text-amber-500" />
           <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Company Policies & Notes</h2>

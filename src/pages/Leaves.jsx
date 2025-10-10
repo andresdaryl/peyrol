@@ -12,6 +12,8 @@ import CreditsManagementTab from "../components/leaves/CreditsManagementTab"
 import AssignCreditsModal from "../components/leaves/AssignCreditsModal"
 import BalanceSummaryModal from "../components/leaves/BalanceSummaryModal"
 import TableSkeleton from "../components/leaves/TableSkeleton"
+import CreditsAuditTable from "../components/leaves/CreditsAuditTable"
+import useDebounce from "@/hooks/use-debounce"
 
 const Leaves = () => {
   const { user } = useAuth()
@@ -22,11 +24,15 @@ const Leaves = () => {
   const [showForm, setShowForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
+  const [filterLeaveType, setFilterLeaveType] = useState("all")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
   const [page, setPage] = useState(1)
   const [activeTab, setActiveTab] = useState("requests")
   const [showAssignCreditsModal, setShowAssignCreditsModal] = useState(false)
   const [showBalanceSummaryModal, setShowBalanceSummaryModal] = useState(false)
   const [balanceSummary, setBalanceSummary] = useState([])
+  const [creditAudit, setCreditAudit] = useState(null)
   const [assignCreditsForm, setAssignCreditsForm] = useState({
     employee_id: "",
     sick_leave: "",
@@ -44,16 +50,42 @@ const Leaves = () => {
   const [formLoading, setFormLoading] = useState(false)
   const [message, setMessage] = useState({ type: "", text: "" })
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
+
+  const fetchLeaves = async () => {
+    setLoading(true)
+    try {
+      const params = {
+        page,
+        ...(filterStatus !== "all" && { status: filterStatus }),
+        ...(filterLeaveType !== "all" && { leave_type: filterLeaveType }),
+        ...(startDate && { start_date: startDate }),
+        ...(endDate && { end_date: endDate }),
+        ...(debouncedSearchTerm && { employee_id: debouncedSearchTerm }),
+      }
+
+      const res = await leaveAPI.getAll(params)
+      setLeaves(res?.data.data)
+    } catch (err) {
+      console.error("Failed to fetch leaves:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchData()
   }, [])
 
+  useEffect(() => {
+    fetchLeaves()
+  }, [page, debouncedSearchTerm, filterStatus, filterLeaveType, startDate, endDate])
+
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [leavesRes, employeesRes] = await Promise.all([leaveAPI.getAll(), employeeAPI.getAll()])
-      setLeaves(leavesRes.data)
-      setEmployees(employeesRes.data?.data)
+      const [employeesRes] = await Promise.all([leaveAPI.getAll(), employeeAPI.getAll()])
+      setEmployees(employeesRes?.data?.data)
 
       if (user?.employee_id) {
         const balanceRes = await leaveAPI.getBalance(user.employee_id)
@@ -157,6 +189,7 @@ const Leaves = () => {
         Number.parseFloat(assignCreditsForm.vacation_leave) || 0,
         assignCreditsForm.reason,
       )
+      setCreditAudit(response.data)
       setMessage({
         type: "success",
         text: "Leave credits adjusted successfully!",
@@ -188,14 +221,6 @@ const Leaves = () => {
     }
   }
 
-  const filteredLeaves = leaves.data?.filter((leave) => {
-    const matchesSearch =
-      leave.employee_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      leave.employee_id?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = filterStatus === "all" || leave.status === filterStatus
-    return matchesSearch && matchesStatus
-  })
-
   const getStatusColor = (status) => {
     switch (status) {
       case "approved":
@@ -214,20 +239,6 @@ const Leaves = () => {
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ")
-  }
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-800 dark:text-white">Leaves</h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">Request and manage employee leave applications</p>
-          </div>
-        </div>
-        <TableSkeleton rows={8} />
-      </div>
-    )
   }
 
   return (
@@ -260,8 +271,8 @@ const Leaves = () => {
       )}
 
       {/* Tabs */}
-      <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl border border-amber-200 dark:border-slate-700 overflow-hidden">
-        <div className="flex border-b border-amber-200 dark:border-slate-700">
+      <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="flex">
           <button
             onClick={() => setActiveTab("requests")}
             className={`flex-1 px-6 py-4 font-medium transition-colors ${
@@ -320,15 +331,25 @@ const Leaves = () => {
             setSearchTerm={setSearchTerm}
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
+            filterLeaveType={filterLeaveType}
+            setFilterLeaveType={setFilterLeaveType}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
             setPage={setPage}
           />
 
-          <LeaveRequestsTable
-            leaves={filteredLeaves}
-            onStatusUpdate={handleStatusUpdate}
-            getStatusColor={getStatusColor}
-            getLeaveTypeLabel={getLeaveTypeLabel}
-          />
+          {loading ? (
+            <TableSkeleton rows={5} />
+          ) : (
+            <LeaveRequestsTable
+              leaves={leaves}
+              onStatusUpdate={handleStatusUpdate}
+              getStatusColor={getStatusColor}
+              getLeaveTypeLabel={getLeaveTypeLabel}
+            />
+          )}
         </>
       )}
 
@@ -355,6 +376,11 @@ const Leaves = () => {
         balanceSummary={balanceSummary}
         formLoading={formLoading}
         onClose={() => setShowBalanceSummaryModal(false)}
+      />
+
+      <CreditsAuditTable
+        auditData={creditAudit}
+        onClose={() => setCreditAudit(null)}
       />
     </div>
   )

@@ -60,7 +60,7 @@ const CreditsManagementTab = ({
       </div>
 
       {/* Assign Credits Section */}
-      <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 border border-amber-200 dark:border-slate-700 shadow-xl">
+      <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold text-slate-800 dark:text-white">Assign/Adjust Credits</h2>

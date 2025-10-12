@@ -61,7 +61,7 @@ const CreditsManagementTab = ({
 
       {/* Assign Credits Section */}
       <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-xl">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col items-center justify-between gap-4 mb-4 md:flex-row">
           <div>
             <h2 className="text-xl font-bold text-slate-800 dark:text-white">Assign/Adjust Credits</h2>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
@@ -70,7 +70,7 @@ const CreditsManagementTab = ({
           </div>
           <button
             onClick={onShowAssignCreditsModal}
-            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+            className="flex items-center justify-center w-full space-x-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg transition-all md:w-fit"
           >
             <Gift className="w-4 h-4" />
             <span>Assign Credits</span>

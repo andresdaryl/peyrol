@@ -55,7 +55,7 @@ const Layout = ({ children }) => {
     setUserMenuOpen(!userMenuOpen);
     setConfigOpen(false);
     setSettingsOpen(false);
-  }   
+  }
 
   const mainNavItems = [
     { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -85,10 +85,20 @@ const Layout = ({ children }) => {
 
   const isActive = (path) => location.pathname === path
 
+  const onNavLinkClick = (path) => {
+    setSidebarOpen(false);
+
+    if (mainNavItems.some(item => item.path === path)) {
+      setSettingsOpen(false);      
+      setConfigOpen(false);
+      setUserMenuOpen(false);
+    }
+  }  
+
   const NavLink = ({ item }) => (
     <Link
       to={item.path}
-      onClick={() => setSidebarOpen(false)}
+      onClick={() => onNavLinkClick(item.path)}
       className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
         isActive(item.path)
           ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
@@ -244,7 +254,7 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Overlay for mobile sidebar */}
-      {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={onNavLinkClick} />}
     </div>
   )
 }

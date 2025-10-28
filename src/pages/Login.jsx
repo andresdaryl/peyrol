@@ -98,7 +98,7 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent text-slate-800 dark:text-white"
-                  placeholder="admin@payroll.com"
+                  placeholder="sample@email.com"
                   required
                   data-testid="login-email"
                 />

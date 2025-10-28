@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, Clock, PhilippinePeso, TrendingUp, TrendingDown, Activity, PieChartIcon, BarChart3 } from "lucide-react"
-import { dashboardAPI } from "../utils/api"
+import { Users, Clock, DollarSign, Activity, PieChartIcon, BarChart3 } from "lucide-react"
+import { dashboardAPI } from "@/utils/api"
 import {
   LineChart,
   Line,
@@ -18,6 +18,12 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
+import StatCard from "@/components/dashboard/StatCard"
+import ChartCard from "@/components/dashboard/ChartCard"
+import AttendanceDeductionsCard from "@/components/dashboard/AttendanceDeductionsCard"
+import LeaveStatisticsCard from "@/components/dashboard/LeaveStatisticsCard"
+import HolidayCalendarCard from "@/components/dashboard/HolidayCalendarCard"
+import DashboardSkeleton from "@/components/dashboard/DashboardSkeleton"
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null)
@@ -27,6 +33,9 @@ const Dashboard = () => {
   const [employeesByDept, setEmployeesByDept] = useState(null)
   const [payrollByDept, setPayrollByDept] = useState(null)
   const [recentActivity, setRecentActivity] = useState(null)
+  const [attendanceDeductions, setAttendanceDeductions] = useState(null)
+  const [leaveStatistics, setLeaveStatistics] = useState(null)
+  const [holidayCalendar, setHolidayCalendar] = useState(null)
   const [loading, setLoading] = useState(true)
   const [attendancePeriod, setAttendancePeriod] = useState(30)
   const [payrollPeriod, setPayrollPeriod] = useState(6)
@@ -38,16 +47,34 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
-      const [statsRes, trendsRes, breakdownRes, payrollRes, empDeptRes, payrollDeptRes, activityRes] =
-        await Promise.all([
-          dashboardAPI.getStats(),
-          dashboardAPI.getAttendanceTrends(attendancePeriod),
-          dashboardAPI.getAttendanceBreakdown(),
-          dashboardAPI.getPayrollTrends(payrollPeriod),
-          dashboardAPI.getEmployeesByDepartment(),
-          dashboardAPI.getPayrollByDepartment(),
-          dashboardAPI.getRecentActivity(5),
-        ])
+      const now = new Date()
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0]
+      const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0]
+      const currentYear = now.getFullYear()
+
+      const [
+        statsRes,
+        trendsRes,
+        breakdownRes,
+        payrollRes,
+        empDeptRes,
+        payrollDeptRes,
+        activityRes,
+        deductionsRes,
+        leaveRes,
+        holidayRes,
+      ] = await Promise.all([
+        dashboardAPI.getStats(),
+        dashboardAPI.getAttendanceTrends(attendancePeriod),
+        dashboardAPI.getAttendanceBreakdown(),
+        dashboardAPI.getPayrollTrends(payrollPeriod),
+        dashboardAPI.getEmployeesByDepartment(),
+        dashboardAPI.getPayrollByDepartment(),
+        dashboardAPI.getRecentActivity(5),
+        dashboardAPI.getAttendanceDeductions(startDate, endDate),
+        dashboardAPI.getLeaveStatistics(),
+        dashboardAPI.getHolidayCalendar(currentYear),
+      ])
 
       setStats(statsRes.data)
       setAttendanceTrends(trendsRes.data)
@@ -56,6 +83,9 @@ const Dashboard = () => {
       setEmployeesByDept(empDeptRes.data)
       setPayrollByDept(payrollDeptRes.data)
       setRecentActivity(activityRes.data)
+      setAttendanceDeductions(deductionsRes.data)
+      setLeaveStatistics(leaveRes.data)
+      setHolidayCalendar(holidayRes.data)
     } catch (error) {
       console.error("Failed to fetch dashboard data", error)
     } finally {
@@ -63,7 +93,6 @@ const Dashboard = () => {
     }
   }
 
-  // Chart colors
   const COLORS = {
     primary: "#f59e0b",
     secondary: "#06b6d4",
@@ -77,12 +106,16 @@ const Dashboard = () => {
 
   const PIE_COLORS = ["#f59e0b", "#06b6d4", "#10b981", "#ef4444", "#a855f7", "#ec4899"]
 
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP",
+      minimumFractionDigits: 0,
+    }).format(value)
+  }
+
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   // Prepare chart data
@@ -123,14 +156,6 @@ const Dashboard = () => {
       }))
     : []
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
-
   const statCards = [
     {
       title: "Total Employees",
@@ -154,7 +179,7 @@ const Dashboard = () => {
       change:
         ((stats?.payroll.thisMonthAmount - stats?.payroll.lastMonthAmount) / stats?.payroll.lastMonthAmount) * 100,
       subtext: "Total cost",
-      icon: PhilippinePeso,
+      icon: DollarSign,
       gradient: "from-amber-500 to-orange-500",
     },
     {
@@ -177,49 +202,25 @@ const Dashboard = () => {
         </p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-200 dark:border-slate-700"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div
-                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg`}
-              >
-                <stat.icon className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex items-center space-x-1">
-                {stat.change >= 0 ? (
-                  <TrendingUp className="w-4 h-4 text-green-500" />
-                ) : (
-                  <TrendingDown className="w-4 h-4 text-red-500" />
-                )}
-                <span className={`text-sm font-semibold ${stat.change >= 0 ? "text-green-500" : "text-red-500"}`}>
-                  {stat.change >= 0 ? "+" : ""}
-                  {stat.change.toFixed(1)}%
-                </span>
-              </div>
-            </div>
-            <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{stat.title}</h3>
-            <p className="text-3xl font-bold text-slate-800 dark:text-white mb-1">{stat.value}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{stat.subtext}</p>
-          </div>
+          <StatCard key={index} {...stat} />
         ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <AttendanceDeductionsCard data={attendanceDeductions} formatCurrency={formatCurrency} />
+        <LeaveStatisticsCard data={leaveStatistics} />
+        <HolidayCalendarCard data={holidayCalendar} />
       </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Attendance Trends */}
-        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-white" />
-              </div>
-              <h2 className="text-xl font-bold text-slate-800 dark:text-white">Attendance Trends</h2>
-            </div>
+        <ChartCard
+          title="Attendance Trends"
+          icon={BarChart3}
+          gradient="from-emerald-500 to-teal-500"
+          actions={
             <select
               value={attendancePeriod}
               onChange={(e) => setAttendancePeriod(Number(e.target.value))}
@@ -229,7 +230,8 @@ const Dashboard = () => {
               <option value={30}>30 Days</option>
               <option value={90}>90 Days</option>
             </select>
-          </div>
+          }
+        >
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={attendanceChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -248,16 +250,9 @@ const Dashboard = () => {
               <Line type="monotone" dataKey="Late" stroke={COLORS.warning} strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
-        {/* Attendance Breakdown */}
-        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-              <PieChartIcon className="w-5 h-5 text-white" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Today's Attendance</h2>
-          </div>
+        <ChartCard title="Today's Attendance" icon={PieChartIcon} gradient="from-blue-500 to-cyan-500">
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -277,17 +272,13 @@ const Dashboard = () => {
               <Legend />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
-        {/* Payroll Trends */}
-        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                <PhilippinePeso className="w-5 h-5 text-white" />
-              </div>
-              <h2 className="text-xl font-bold text-slate-800 dark:text-white">Payroll Trends</h2>
-            </div>
+        <ChartCard
+          title="Payroll Trends"
+          icon={DollarSign}
+          gradient="from-amber-500 to-orange-500"
+          actions={
             <select
               value={payrollPeriod}
               onChange={(e) => setPayrollPeriod(Number(e.target.value))}
@@ -296,12 +287,13 @@ const Dashboard = () => {
               <option value={6}>6 Months</option>
               <option value={12}>12 Months</option>
             </select>
-          </div>
+          }
+        >
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={payrollChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="month" stroke="#64748b" style={{ fontSize: "12px" }} />
-              <YAxis stroke="#64748b" style={{ fontSize: "12px" }} tickFormatter={(value) => `₱${value / 1000}k`} />
+              <YAxis stroke="#64748b" style={{ fontSize: "12px" }} tickFormatter={(value) => `$${value / 1000}k`} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -314,21 +306,14 @@ const Dashboard = () => {
               <Line type="monotone" dataKey="Amount" stroke={COLORS.primary} strokeWidth={3} dot={{ r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
-        {/* Payroll by Department */}
-        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-white" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Payroll by Department</h2>
-          </div>
+        <ChartCard title="Payroll by Department" icon={BarChart3} gradient="from-purple-500 to-pink-500">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={payrollDeptData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="department" stroke="#64748b" style={{ fontSize: "12px" }} />
-              <YAxis stroke="#64748b" style={{ fontSize: "12px" }} tickFormatter={(value) => `₱${value / 1000}k`} />
+              <YAxis stroke="#64748b" style={{ fontSize: "12px" }} tickFormatter={(value) => `$${value / 1000}k`} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -340,16 +325,9 @@ const Dashboard = () => {
               <Bar dataKey="amount" fill={COLORS.primary} radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
-        {/* Employees by Department */}
-        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
-              <Users className="w-5 h-5 text-white" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Employees by Department</h2>
-          </div>
+        <ChartCard title="Employees by Department" icon={Users} gradient="from-pink-500 to-rose-500">
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -368,16 +346,9 @@ const Dashboard = () => {
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </ChartCard>
 
-        {/* Recent Activity */}
-        <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center">
-              <Activity className="w-5 h-5 text-white" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Recent Activity</h2>
-          </div>
+        <ChartCard title="Recent Activity" icon={Activity} gradient="from-teal-500 to-emerald-500">
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">Latest Attendance</h3>
@@ -426,7 +397,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-        </div>
+        </ChartCard>
       </div>
     </div>
   )

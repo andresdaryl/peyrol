@@ -1,14 +1,18 @@
 const DashboardSkeleton = () => {
   return (
-    <div className="space-y-8 animate-pulse">
+    <div className="space-y-8">
       {/* Header Skeleton */}
       <div>
-        <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-lg w-64 mb-2"></div>
-        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-96"></div>
+        <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-2">
+          Dashboard
+        </h1>
+        <p className="text-slate-600 dark:text-slate-400">
+          Comprehensive analytics and insights for your payroll system
+        </p>
       </div>
 
       {/* Stats Cards Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
@@ -26,7 +30,7 @@ const DashboardSkeleton = () => {
       </div>
 
       {/* Info Cards Skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse">
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
@@ -49,7 +53,7 @@ const DashboardSkeleton = () => {
       </div>
 
       {/* Charts Skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-pulse">
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
@@ -67,7 +71,7 @@ const DashboardSkeleton = () => {
         ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DashboardSkeleton
+export default DashboardSkeleton;

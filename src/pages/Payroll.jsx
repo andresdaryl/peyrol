@@ -1,199 +1,211 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Plus, AudioLines as PhilippinePeso } from "lucide-react"
-import { payrollRunAPI, payrollEntryAPI, payslipAPI, reportsAPI, employeeAPI } from "../utils/api"
-import { toast } from "sonner"
-import PayrollRunsList from "../components/payroll/PayrollRunsList"
-import PayrollSummaryCard from "../components/payroll/PayrollSummaryCard"
-import PayrollActions from "../components/payroll/PayrollActions"
-import PayrollEntriesTable from "../components/payroll/PayrollEntriesTable"
-import TableSkeleton from "../components/payroll/TableSkeleton"
-import CreateRunModal from "../components/payroll/CreateRunModal"
-import EditEntryModal from "../components/payroll/EditEntryModal"
+import { useState, useEffect } from "react";
+import { Plus, AudioLines as PhilippinePeso } from "lucide-react";
+import {
+  payrollRunAPI,
+  payrollEntryAPI,
+  payslipAPI,
+  reportsAPI,
+  employeeAPI,
+} from "../utils/api";
+import { toast } from "sonner";
+import PayrollRunsList from "../components/payroll/PayrollRunsList";
+import PayrollSummaryCard from "../components/payroll/PayrollSummaryCard";
+import PayrollActions from "../components/payroll/PayrollActions";
+import PayrollEntriesTable from "../components/payroll/PayrollEntriesTable";
+import TableSkeleton from "../components/payroll/TableSkeleton";
+import CreateRunModal from "../components/payroll/CreateRunModal";
+import EditEntryModal from "../components/payroll/EditEntryModal";
+import PayrollSkeleton from "@/components/payroll/PayrollSkeleton";
 
 const Payroll = () => {
-  const [runs, setRuns] = useState([])
-  const [selectedRun, setSelectedRun] = useState(null)
-  const [entries, setEntries] = useState([])
-  const [employees, setEmployees] = useState([])
-  const [summary, setSummary] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [loadingEntries, setLoadingEntries] = useState(false)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [editingEntry, setEditingEntry] = useState(null)
+  const [runs, setRuns] = useState([]);
+  const [selectedRun, setSelectedRun] = useState(null);
+  const [entries, setEntries] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingEntries, setLoadingEntries] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingEntry, setEditingEntry] = useState(null);
   const [formData, setFormData] = useState({
     start_date: "",
     end_date: "",
     type: "weekly",
-  })
+  });
 
   const [runsFilters, setRunsFilters] = useState({
     start_date: "",
     end_date: "",
     type: "",
-  })
+  });
 
   const [entriesFilters, setEntriesFilters] = useState({
     employee_id: "",
     version: "",
-  })
+  });
 
   useEffect(() => {
-    fetchEmployees()
-  }, [])
+    fetchEmployees();
+  }, []);
 
   useEffect(() => {
-    fetchRuns()
-  }, [runsFilters])
+    fetchRuns();
+  }, [runsFilters]);
 
   useEffect(() => {
     if (selectedRun) {
-      fetchRunDetails(selectedRun.id)
+      fetchRunDetails(selectedRun.id);
     }
-  }, [entriesFilters])
+  }, [entriesFilters]);
 
   const fetchRuns = async () => {
     try {
-      setLoading(true)
-      const params = {}
-      if (runsFilters.start_date) params.start_date = runsFilters.start_date
-      if (runsFilters.end_date) params.end_date = runsFilters.end_date
-      if (runsFilters.type) params.type = runsFilters.type
+      setLoading(true);
+      const params = {};
+      if (runsFilters.start_date) params.start_date = runsFilters.start_date;
+      if (runsFilters.end_date) params.end_date = runsFilters.end_date;
+      if (runsFilters.type) params.type = runsFilters.type;
 
-      const response = await payrollRunAPI.getAll(params)
-      setRuns(response.data)
+      const response = await payrollRunAPI.getAll(params);
+      setRuns(response.data);
     } catch (error) {
-      toast.error("Failed to fetch payroll runs")
+      toast.error("Failed to fetch payroll runs");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const fetchEmployees = async () => {
     try {
-      const response = await employeeAPI.getAll()
-      setEmployees(response?.data?.data)
+      const response = await employeeAPI.getAll();
+      setEmployees(response?.data?.data);
     } catch (error) {
-      console.error("Failed to fetch employees")
+      console.error("Failed to fetch employees");
     }
-  }
+  };
 
   const fetchRunDetails = async (runId) => {
     try {
-      setLoadingEntries(true)
-      const params = { run_id: runId }
-      if (entriesFilters.employee_id) params.employee_id = entriesFilters.employee_id
-      if (entriesFilters.version) params.version = Number.parseInt(entriesFilters.version)
+      setLoadingEntries(true);
+      const params = { run_id: runId };
+      if (entriesFilters.employee_id)
+        params.employee_id = entriesFilters.employee_id;
+      if (entriesFilters.version)
+        params.version = Number.parseInt(entriesFilters.version);
 
       const [entriesRes, summaryRes] = await Promise.all([
         payrollEntryAPI.getAll(params),
         reportsAPI.getPayrollSummary(runId),
-      ])
-      setEntries(entriesRes.data)
-      setSummary(summaryRes.data.summary)
+      ]);
+      setEntries(entriesRes.data);
+      setSummary(summaryRes.data.summary);
     } catch (error) {
-      toast.error("Failed to fetch run details")
+      toast.error("Failed to fetch run details");
     } finally {
-      setLoadingEntries(false)
+      setLoadingEntries(false);
     }
-  }
+  };
 
   const handleCreateRun = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await payrollRunAPI.create(formData)
-      toast.success("Payroll run created")
-      fetchRuns()
-      setShowCreateModal(false)
-      setFormData({ start_date: "", end_date: "", type: "weekly" })
+      await payrollRunAPI.create(formData);
+      toast.success("Payroll run created");
+      fetchRuns();
+      setShowCreateModal(false);
+      setFormData({ start_date: "", end_date: "", type: "weekly" });
     } catch (error) {
-      toast.error("Failed to create run")
+      toast.error("Failed to create run");
     }
-  }
+  };
 
   const handleGenerateEntries = async (runId) => {
     try {
-      await payrollRunAPI.generateEntries(runId)
-      toast.success("Payroll entries generated")
-      fetchRunDetails(runId)
+      await payrollRunAPI.generateEntries(runId);
+      toast.success("Payroll entries generated");
+      fetchRunDetails(runId);
     } catch (error) {
-      toast.error("Failed to generate entries")
+      toast.error("Failed to generate entries");
     }
-  }
+  };
 
   const handleFinalizeRun = async (runId) => {
-    if (window.confirm("Finalize this payroll run? This will lock all entries.")) {
+    if (
+      window.confirm("Finalize this payroll run? This will lock all entries.")
+    ) {
       try {
-        await payrollRunAPI.update(runId, { status: "finalized" })
-        toast.success("Payroll run finalized")
-        fetchRuns()
+        await payrollRunAPI.update(runId, { status: "finalized" });
+        toast.success("Payroll run finalized");
+        fetchRuns();
       } catch (error) {
-        toast.error("Failed to finalize")
+        toast.error("Failed to finalize");
       }
     }
-  }
+  };
 
   const handleGeneratePayslips = async (runId) => {
     try {
-      const runEntries = await payrollEntryAPI.getAll({ run_id: runId })
+      const runEntries = await payrollEntryAPI.getAll({ run_id: runId });
       for (const entry of runEntries.data) {
-        await payslipAPI.generate(entry.id)
+        await payslipAPI.generate(entry.id);
       }
-      toast.success("All payslips generated")
+      toast.success("All payslips generated");
     } catch (error) {
-      toast.error("Failed to generate payslips")
+      toast.error("Failed to generate payslips");
     }
-  }
+  };
 
   const handleEditEntry = (entry) => {
-    setEditingEntry(entry)
-    setShowEditModal(true)
-  }
+    setEditingEntry(entry);
+    setShowEditModal(true);
+  };
 
   const handleUpdateEntry = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await payrollEntryAPI.update(editingEntry.id, editingEntry)
-      toast.success("Entry updated")
-      fetchRunDetails(selectedRun.id)
-      setShowEditModal(false)
+      await payrollEntryAPI.update(editingEntry.id, editingEntry);
+      toast.success("Entry updated");
+      fetchRunDetails(selectedRun.id);
+      setShowEditModal(false);
     } catch (error) {
-      toast.error("Failed to update")
+      toast.error("Failed to update");
     }
-  }
+  };
 
   const handleSelectRun = (run) => {
-    setSelectedRun(run)
-    setEntriesFilters({ employee_id: "", version: "" })
-    fetchRunDetails(run.id)
-  }
+    setSelectedRun(run);
+    setEntriesFilters({ employee_id: "", version: "" });
+    fetchRunDetails(run.id);
+  };
 
   const handleRunsFilterChange = (filters) => {
-    setRunsFilters(filters)
-  }
+    setRunsFilters(filters);
+  };
 
   const handleEntriesFilterChange = (filters) => {
-    setEntriesFilters(filters)
-  }
+    setEntriesFilters(filters);
+  };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    )
+    return <PayrollSkeleton />;
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-slate-800 dark:text-white" data-testid="payroll-title">
+          <h1
+            className="text-4xl font-bold text-slate-800 dark:text-white"
+            data-testid="payroll-title"
+          >
             Payroll
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">Create and manage payroll runs</p>
+          <p className="text-slate-600 dark:text-slate-400">
+            Create and manage payroll runs
+          </p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -244,7 +256,9 @@ const Payroll = () => {
           ) : (
             <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-12 shadow-lg border border-slate-200 dark:border-slate-700 text-center">
               <PhilippinePeso className="w-16 h-16 mx-auto text-slate-400 mb-4" />
-              <p className="text-slate-600 dark:text-slate-400">Select a payroll run to view details</p>
+              <p className="text-slate-600 dark:text-slate-400">
+                Select a payroll run to view details
+              </p>
             </div>
           )}
         </div>
@@ -266,7 +280,7 @@ const Payroll = () => {
         onClose={() => setShowEditModal(false)}
       />
     </div>
-  )
-}
+  );
+};
 
-export default Payroll
+export default Payroll;

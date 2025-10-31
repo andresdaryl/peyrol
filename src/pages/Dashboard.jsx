@@ -2,10 +2,10 @@ import { useState, useMemo } from "react";
 import {
   Users,
   Clock,
-  DollarSign,
   Activity,
   PieChartIcon,
   BarChart3,
+  PhilippinePeso,
 } from "lucide-react";
 import {
   LineChart,
@@ -209,7 +209,7 @@ const Dashboard = () => {
             stats?.payroll.lastMonthAmount) *
           100,
         subtext: "Total cost",
-        icon: DollarSign,
+        icon: PhilippinePeso,
         gradient: "from-amber-500 to-orange-500",
         isLoading: statsLoading,
       },
@@ -334,7 +334,7 @@ const Dashboard = () => {
 
         <ChartCard
           title="Payroll Trends"
-          icon={DollarSign}
+          icon={PhilippinePeso}
           gradient="from-amber-500 to-orange-500"
           isLoading={payrollLoading}
           actions={

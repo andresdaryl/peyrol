@@ -45,8 +45,14 @@ const StatCard = ({
               change >= 0 ? "text-green-500" : "text-red-500"
             }`}
           >
-            {change >= 0 ? "+" : ""}
-            {change.toFixed(1)}%
+            {Number.isFinite(change) ? (
+              <>
+                {change >= 0 ? "+" : ""}
+                {change.toFixed(1)}%
+              </>
+            ) : (
+              "0%"
+            )}
           </span>
         </div>
       </div>

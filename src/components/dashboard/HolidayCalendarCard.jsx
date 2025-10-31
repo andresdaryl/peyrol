@@ -1,7 +1,41 @@
-import { Calendar } from "lucide-react"
+import { Calendar } from "lucide-react";
 
-const HolidayCalendarCard = ({ data }) => {
-  if (!data) return null
+const HolidayCalendarCard = ({ data, isLoading }) => {
+  if (isLoading) {
+    return (
+      <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-700" />
+          <div className="h-5 w-48 bg-slate-200 dark:bg-slate-700 rounded" />
+        </div>
+
+        {/* Total Holidays Skeleton */}
+        <div className="p-4 bg-slate-50 dark:bg-slate-900/20 rounded-xl mb-4">
+          <div className="h-3 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
+          <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded" />
+        </div>
+
+        {/* Upcoming Holidays List Skeleton */}
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg flex items-center justify-between"
+            >
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-40 bg-slate-200 dark:bg-slate-700 rounded" />
+                <div className="h-3 w-28 bg-slate-200 dark:bg-slate-700 rounded" />
+              </div>
+              <div className="h-5 w-12 bg-slate-200 dark:bg-slate-700 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
 
   return (
     <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
@@ -9,14 +43,20 @@ const HolidayCalendarCard = ({ data }) => {
         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
           <Calendar className="w-5 h-5 text-white" />
         </div>
-        <h2 className="text-xl font-bold text-slate-800 dark:text-white">Upcoming Holidays</h2>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+          Upcoming Holidays
+        </h2>
       </div>
       <div className="space-y-4">
         <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-          <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">Total Holidays {data.year}</p>
-          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{data.total_holidays}</p>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">
+            Total Holidays {data.year}
+          </p>
+          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+            {data.total_holidays}
+          </p>
         </div>
-        <div className="space-y-3 max-h-64 overflow-y-auto">
+        <div className="space-y-3 max-h-64 overflow-y-auto hide-scrollbar">
           {data.upcoming_holidays.map((holiday) => (
             <div
               key={holiday.id}
@@ -24,7 +64,9 @@ const HolidayCalendarCard = ({ data }) => {
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-800 dark:text-white">{holiday.name}</p>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-white">
+                    {holiday.name}
+                  </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {new Date(holiday.date).toLocaleDateString("en-US", {
                       weekday: "short",
@@ -52,7 +94,7 @@ const HolidayCalendarCard = ({ data }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default HolidayCalendarCard
+export default HolidayCalendarCard;

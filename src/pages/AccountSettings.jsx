@@ -1,113 +1,115 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { User, Lock, Mail, Save, AlertCircle } from "lucide-react"
-import { accountAPI } from "../utils/api"
-import { toast } from "sonner"
-import { useAuth } from "../contexts/AuthContext"
+import { useState, useEffect } from "react";
+import { User, Lock, Mail, Save, AlertCircle } from "lucide-react";
+import { accountAPI } from "../utils/api";
+import { toast } from "sonner";
+import { useAuth } from "../contexts/AuthContext";
+import AccountSettingsSkeleton from "@/components/accountSettings/AccountSettingsSkeleton";
 
 const AccountSettings = () => {
-  const { user, setUser } = useAuth()
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const { user, setUser } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [accountData, setAccountData] = useState({
     name: "",
     email: "",
     role: "",
-  })
+  });
   const [passwordData, setPasswordData] = useState({
     current_password: "",
     new_password: "",
     confirm_password: "",
-  })
+  });
 
   useEffect(() => {
-    fetchAccountData()
-  }, [])
+    fetchAccountData();
+  }, []);
 
   const fetchAccountData = async () => {
     try {
-      const response = await accountAPI.getMe()
+      const response = await accountAPI.getMe();
       setAccountData({
         name: response.data.name || "",
         email: response.data.email || "",
         role: response.data.role || "",
-      })
+      });
     } catch (error) {
-      toast.error("Failed to fetch account data")
+      toast.error("Failed to fetch account data");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleProfileUpdate = async (e) => {
-    e.preventDefault()
-    setSaving(true)
+    e.preventDefault();
+    setSaving(true);
     try {
       const response = await accountAPI.updateProfile({
         name: accountData.name,
         email: accountData.email,
-      })
-      toast.success("Profile updated successfully")
+      });
+      toast.success("Profile updated successfully");
       // Update user context if available
       if (setUser) {
-        setUser({ ...user, name: accountData.name, email: accountData.email })
+        setUser({ ...user, name: accountData.name, email: accountData.email });
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update profile")
+      toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const handlePasswordChange = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (passwordData.new_password !== passwordData.confirm_password) {
-      toast.error("New passwords do not match")
-      return
+      toast.error("New passwords do not match");
+      return;
     }
 
     if (passwordData.new_password.length < 6) {
-      toast.error("Password must be at least 6 characters")
-      return
+      toast.error("Password must be at least 6 characters");
+      return;
     }
 
-    setSaving(true)
+    setSaving(true);
     try {
       await accountAPI.changePassword({
         current_password: passwordData.current_password,
         new_password: passwordData.new_password,
         confirm_password: passwordData.confirm_password,
-      })
-      toast.success("Password changed successfully")
+      });
+      toast.success("Password changed successfully");
       setPasswordData({
         current_password: "",
         new_password: "",
         confirm_password: "",
-      })
+      });
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to change password")
+      toast.error(error.response?.data?.message || "Failed to change password");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    )
+    return <AccountSettingsSkeleton />;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-2" data-testid="account-settings-title">
+        <h1
+          className="text-4xl font-bold text-slate-800 dark:text-white mb-2"
+          data-testid="account-settings-title"
+        >
           Account Settings
         </h1>
-        <p className="text-slate-600 dark:text-slate-400">Manage your profile information and security settings</p>
+        <p className="text-slate-600 dark:text-slate-400">
+          Manage your profile information and security settings
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -118,18 +120,26 @@ const AccountSettings = () => {
               <User className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-800 dark:text-white">Profile Information</h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Update your account details</p>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                Profile Information
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Update your account details
+              </p>
             </div>
           </div>
 
           <form onSubmit={handleProfileUpdate} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Full Name</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Full Name
+              </label>
               <input
                 type="text"
                 value={accountData.name}
-                onChange={(e) => setAccountData({ ...accountData, name: e.target.value })}
+                onChange={(e) =>
+                  setAccountData({ ...accountData, name: e.target.value })
+                }
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-800 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 placeholder="Enter your full name"
                 required
@@ -138,11 +148,15 @@ const AccountSettings = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email Address</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Email Address
+              </label>
               <input
                 type="email"
                 value={accountData.email}
-                onChange={(e) => setAccountData({ ...accountData, email: e.target.value })}
+                onChange={(e) =>
+                  setAccountData({ ...accountData, email: e.target.value })
+                }
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-800 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 placeholder="Enter your email"
                 required
@@ -151,15 +165,21 @@ const AccountSettings = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Role</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Role
+              </label>
               <input
                 type="text"
-                value={accountData.role === "superadmin" ? "Super Admin" : "Admin"}
+                value={
+                  accountData.role === "superadmin" ? "Super Admin" : "Admin"
+                }
                 className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-600 dark:text-slate-400 cursor-not-allowed"
                 disabled
                 data-testid="input-role"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Role cannot be changed</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Role cannot be changed
+              </p>
             </div>
 
             <button
@@ -181,8 +201,12 @@ const AccountSettings = () => {
               <Lock className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-800 dark:text-white">Change Password</h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Update your security credentials</p>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                Change Password
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Update your security credentials
+              </p>
             </div>
           </div>
 
@@ -194,7 +218,12 @@ const AccountSettings = () => {
               <input
                 type="password"
                 value={passwordData.current_password}
-                onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    current_password: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-800 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="Enter current password"
                 required
@@ -203,11 +232,18 @@ const AccountSettings = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">New Password</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                New Password
+              </label>
               <input
                 type="password"
                 value={passwordData.new_password}
-                onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    new_password: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-800 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="Enter new password"
                 required
@@ -222,7 +258,12 @@ const AccountSettings = () => {
               <input
                 type="password"
                 value={passwordData.confirm_password}
-                onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    confirm_password: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-800 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="Confirm new password"
                 required
@@ -233,7 +274,8 @@ const AccountSettings = () => {
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 flex items-start space-x-2">
               <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-amber-700 dark:text-amber-300">
-                Password must be at least 6 characters long. Make sure to use a strong password.
+                Password must be at least 6 characters long. Make sure to use a
+                strong password.
               </p>
             </div>
 
@@ -256,27 +298,41 @@ const AccountSettings = () => {
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center">
             <Mail className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-xl font-bold text-slate-800 dark:text-white">Account Information</h2>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+            Account Information
+          </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Account Type</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              Account Type
+            </p>
             <p className="font-semibold text-slate-800 dark:text-white">
-              {accountData.role === "superadmin" ? "Super Administrator" : "Administrator"}
+              {accountData.role === "superadmin"
+                ? "Super Administrator"
+                : "Administrator"}
             </p>
           </div>
           <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Status</p>
-            <p className="font-semibold text-green-600 dark:text-green-400">Active</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              Status
+            </p>
+            <p className="font-semibold text-green-600 dark:text-green-400">
+              Active
+            </p>
           </div>
           <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Permissions</p>
-            <p className="font-semibold text-slate-800 dark:text-white">Full Access</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              Permissions
+            </p>
+            <p className="font-semibold text-slate-800 dark:text-white">
+              Full Access
+            </p>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AccountSettings
+export default AccountSettings;

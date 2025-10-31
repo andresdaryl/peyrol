@@ -244,19 +244,6 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <AttendanceDeductionsCard
-          data={attendanceDeductions}
-          formatCurrency={formatCurrency}
-          isLoading={deductionsLoading}
-        />
-        <LeaveStatisticsCard data={leaveStatistics} isLoading={leaveLoading} />
-        <HolidayCalendarCard
-          data={holidayCalendar}
-          isLoading={holidayLoading}
-        />
-      </div>
-
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard
@@ -525,6 +512,19 @@ const Dashboard = () => {
             </div>
           </div>
         </ChartCard>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <AttendanceDeductionsCard
+          data={attendanceDeductions}
+          formatCurrency={formatCurrency}
+          isLoading={deductionsLoading}
+        />
+        <LeaveStatisticsCard data={leaveStatistics} isLoading={leaveLoading} />
+        <HolidayCalendarCard
+          data={holidayCalendar}
+          isLoading={holidayLoading}
+        />
       </div>
     </div>
   );

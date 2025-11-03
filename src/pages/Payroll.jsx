@@ -1,7 +1,5 @@
-"use client";
-
 import { useState, useEffect } from "react";
-import { Plus, AudioLines as PhilippinePeso } from "lucide-react";
+import { Plus, PhilippinePeso } from "lucide-react";
 import {
   payrollRunAPI,
   payrollEntryAPI,
@@ -46,6 +44,9 @@ const Payroll = () => {
     employee_id: "",
     version: "",
   });
+
+  const [selectedEntries, setSelectedEntries] = useState(new Set());
+  const [isGeneratingPayslips, setIsGeneratingPayslips] = useState(false);
 
   useEffect(() => {
     fetchEmployees();
@@ -147,14 +148,97 @@ const Payroll = () => {
   };
 
   const handleGeneratePayslips = async (runId) => {
+    if (isGeneratingPayslips) return;
+
     try {
+      setIsGeneratingPayslips(true);
       const runEntries = await payrollEntryAPI.getAll({ run_id: runId });
+
+      let successCount = 0;
+      let failCount = 0;
+
       for (const entry of runEntries.data) {
-        await payslipAPI.generate(entry.id);
+        try {
+          await payslipAPI.generate(entry.id);
+          successCount++;
+        } catch (error) {
+          failCount++;
+          console.error(
+            `Failed to generate payslip for entry ${entry.id}:`,
+            error
+          );
+        }
       }
-      toast.success("All payslips generated");
+
+      if (failCount === 0) {
+        toast.success(`All ${successCount} payslips generated successfully`);
+      } else {
+        toast.error(`Generated ${successCount} payslips, ${failCount} failed`);
+      }
     } catch (error) {
       toast.error("Failed to generate payslips");
+    } finally {
+      setIsGeneratingPayslips(false);
+    }
+  };
+
+  const handleGenerateSelectedPayslips = async () => {
+    if (isGeneratingPayslips || selectedEntries.size === 0) return;
+
+    try {
+      setIsGeneratingPayslips(true);
+      const selectedIds = Array.from(selectedEntries);
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const entryId of selectedIds) {
+        try {
+          await payslipAPI.generate(entryId);
+          successCount++;
+        } catch (error) {
+          failCount++;
+          console.error(
+            `Failed to generate payslip for entry ${entryId}:`,
+            error
+          );
+        }
+      }
+
+      if (failCount === 0) {
+        toast.success(
+          `${successCount} payslip${
+            successCount > 1 ? "s" : ""
+          } generated successfully`
+        );
+        setSelectedEntries(new Set());
+      } else {
+        toast.error(`Generated ${successCount} payslips, ${failCount} failed`);
+      }
+    } catch (error) {
+      toast.error("Failed to generate selected payslips");
+    } finally {
+      setIsGeneratingPayslips(false);
+    }
+  };
+
+  const handleToggleSelection = (entryId) => {
+    setSelectedEntries((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(entryId)) {
+        newSet.delete(entryId);
+      } else {
+        newSet.add(entryId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleToggleAll = (checked) => {
+    if (checked) {
+      setSelectedEntries(new Set(entries.map((e) => e.id)));
+    } else {
+      setSelectedEntries(new Set());
     }
   };
 
@@ -178,6 +262,7 @@ const Payroll = () => {
   const handleSelectRun = (run) => {
     setSelectedRun(run);
     setEntriesFilters({ employee_id: "", version: "" });
+    setSelectedEntries(new Set());
     fetchRunDetails(run.id);
   };
 
@@ -238,7 +323,10 @@ const Payroll = () => {
                 selectedRun={selectedRun}
                 onGenerateEntries={handleGenerateEntries}
                 onGeneratePayslips={handleGeneratePayslips}
+                onGenerateSelectedPayslips={handleGenerateSelectedPayslips}
                 onFinalizeRun={handleFinalizeRun}
+                selectedCount={selectedEntries.size}
+                isGenerating={isGeneratingPayslips}
               />
 
               {loadingEntries ? (
@@ -250,6 +338,9 @@ const Payroll = () => {
                   onEditEntry={handleEditEntry}
                   employees={employees}
                   onFilterChange={handleEntriesFilterChange}
+                  selectedEntries={selectedEntries}
+                  onToggleSelection={handleToggleSelection}
+                  onToggleAll={handleToggleAll}
                 />
               )}
             </div>
